@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>旅GO — 旅遊行程規劃</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+:root{--bg:#fff;--bg2:#f5f5f0;--bg3:#e8e8e3;--t1:#1a1a1a;--t2:#6b6b6b;--t3:#9b9b9b;--bd:rgba(0,0,0,0.1);--bd2:rgba(0,0,0,0.2);--green:#1D9E75;--gl:#E1F5EE;--gd:#0F6E56;--blue:#185FA5;--bl:#E6F1FB;--r1:8px;--r2:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1e1e1e;--bg2:#161616;--bg3:#121212;--t1:#f0f0f0;--t2:#a0a0a0;--t3:#666;--bd:rgba(255,255,255,0.1);--bd2:rgba(255,255,255,0.2);--gl:#0a2e22;--bl:#0a1e33}}
+.app{max-width:800px;margin:0 auto;min-height:100vh;background:var(--bg2)}
+.topbar{background:var(--bg);border-bottom:0.5px solid var(--bd);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.logo{font-size:16px;font-weight:700;color:var(--t1)}.logo span{color:var(--green)}
+.user-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border:0.5px solid var(--bd2);border-radius:20px;cursor:pointer;font-size:12px;color:var(--t2);background:var(--bg);transition:border-color .15s}
+.user-pill:hover{border-color:var(--green)}
+.avatar{width:22px;height:22px;border-radius:50%;background:var(--gl);color:var(--gd);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.nav{display:flex;background:var(--bg);border-bottom:0.5px solid var(--bd);padding:0 16px;overflow-x:auto}
+.nav::-webkit-scrollbar{display:none}
+.nb{padding:10px 13px;font-size:13px;border:none;background:none;color:var(--t2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;white-space:nowrap;transition:color .15s;flex-shrink:0}
+.nb.on{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+.body{padding:14px 16px}
+.view{display:none}.view.on{display:block}
+.subview{display:none}.subview.on{display:block}
+
+/* Login */
+.login-screen{text-align:center;padding:70px 24px}
+.login-screen .big-icon{font-size:52px;margin-bottom:14px}
+.login-screen h1{font-size:24px;font-weight:700;color:var(--t1);margin-bottom:8px}
+.login-screen p{font-size:14px;color:var(--t2);margin-bottom:32px;line-height:1.7}
+.btn-google{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;background:var(--green);border:none;border-radius:var(--r1);color:#fff;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;transition:background .15s}
+.btn-google:hover{background:var(--gd)}
+.btn-google svg{width:18px;height:18px}
+
+/* Trips */
+.trips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+@media(max-width:480px){.trips-grid{grid-template-columns:repeat(2,1fr)}}
+.trip-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r2);padding:13px;cursor:pointer;transition:border-color .15s,transform .1s;position:relative}
+.trip-card:hover{border-color:var(--green);transform:translateY(-1px)}
+.trip-cover{height:62px;border-radius:var(--r1);margin-bottom:9px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.trip-name{font-size:13px;font-weight:600;color:var(--t1);line-height:1.3}
+.trip-sub{font-size:11px;color:var(--t2);margin-top:3px}
+.trip-badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:20px;font-size:10px;background:var(--gl);color:var(--gd)}
+.add-trip-card{background:var(--bg);border:0.5px dashed var(--bd2);border-radius:var(--r2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:148px;gap:8px;color:var(--t3);transition:all .15s}
+.add-trip-card:hover{border-color:var(--green);color:var(--green)}
+.add-circle{width:32px;height:32px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:20px}
+.card-menu-btn{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;color:var(--t2);z-index:2;line-height:1}
+.card-menu-btn:hover{background:var(--bg3);border-color:var(--bd2)}
+.card-dropdown{position:absolute;top:34px;right:8px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:var(--r1);box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:20;min-width:110px;overflow:hidden;display:none}
+.card-dropdown.open{display:block}
+.card-dropdown-item{padding:9px 14px;font-size:13px;cursor:pointer;color:var(--t1);display:flex;align-items:center;gap:7px}
+.card-dropdown-item:hover{background:var(--bg2)}
+.card-dropdown-item.danger{color:#E24B4A}
+.card-dropdown-item.danger:hover{background:#FCEBEB}
+
+/* Detail */
+.back-btn{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--t2);cursor:pointer;margin-bottom:11px;background:none;border:none;font-family:inherit;padding:0}
+.back-btn:hover{color:var(--green)}
+.detail-title{font-size:18px;font-weight:700;color:var(--t1)}
+.detail-sub{font-size:12px;color:var(--t2);margin-top:2px}
+.detail-actions{display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px}
+.sub-tabs{display:flex;gap:5px;flex-wrap:wrap}
+.stab{padding:5px 11px;font-size:12px;border:0.5px solid var(--bd2);border-radius:20px;cursor:pointer;background:none;color:var(--t2);font-family:inherit;transition:all .15s}
+.stab.on{background:var(--green);border-color:var(--green);color:#fff}
+.action-btns{display:flex;gap:6px;flex-wrap:wrap}
+.icon-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;font-size:12px;border:0.5px solid var(--bd2);border-radius:20px;cursor:pointer;background:var(--bg);color:var(--t2);font-family:inherit;transition:all .15s;white-space:nowrap}
+.icon-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* Day blocks */
+.row-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.row-title{font-size:15px;font-weight:600;color:var(--t1)}
+.day-block{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r2);margin-bottom:9px;overflow:hidden}
+.day-hd{padding:10px 13px;background:var(--bg2);display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+.day-num{width:24px;height:24px;border-radius:50%;background:var(--gl);color:var(--gd);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.day-label{font-size:13px;font-weight:600;color:var(--t1)}
+.day-date-lbl{font-size:11px;color:var(--t2)}
+.day-arr{font-size:11px;color:var(--t3);margin-left:auto}
+.weather-chip{display:flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;background:var(--bl);color:var(--blue);margin-left:6px;flex-shrink:0}
+.day-body{border-top:0.5px solid var(--bd)}
+.spot-row{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:0.5px solid var(--bd);user-select:none}
+.spot-row:last-of-type{border-bottom:none}
+.spot-row.draggable{cursor:grab}
+.spot-row.dragging{opacity:0.35;background:var(--gl)}
+.spot-row.drag-over{border-top:2px solid var(--green)}
+.drag-handle{color:var(--t3);font-size:14px;flex-shrink:0;padding:0 1px}
+.spot-thumb{width:38px;height:38px;border-radius:var(--r1);background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.spot-info-col{flex:1;min-width:0}
+.spot-name{font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spot-meta{display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap}
+.spot-time{font-size:11px;color:var(--t2)}
+.spot-note{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.spot-acts{display:flex;gap:4px;flex-shrink:0}
+.btn-map{padding:4px 8px;font-size:11px;border:0.5px solid var(--green);color:var(--green);border-radius:20px;cursor:pointer;background:none;font-family:inherit}
+.btn-map:hover{background:var(--gl)}
+.btn-sm{padding:4px 7px;font-size:11px;border:0.5px solid var(--bd2);color:var(--t2);border-radius:var(--r1);cursor:pointer;background:none;font-family:inherit}
+.add-spot-row{padding:9px 13px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--t3);font-size:12px;border-top:0.5px dashed var(--bd)}
+.add-spot-row:hover{color:var(--green);background:var(--bg2)}
+.add-spot-plus{width:20px;height:20px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+
+/* Weather bar */
+.weather-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.weather-bar::-webkit-scrollbar{display:none}
+.weather-chip-big{flex-shrink:0;background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r1);padding:8px 10px;text-align:center;min-width:60px}
+.wc-day{font-size:10px;color:var(--t2)}
+.wc-icon{font-size:20px;margin:2px 0}
+.wc-temp{font-size:11px;font-weight:600;color:var(--t1)}
+.wc-desc{font-size:10px;color:var(--t3);margin-top:1px}
+.weather-note{font-size:11px;color:var(--blue);margin-bottom:10px;padding:7px 10px;background:var(--bl);border-radius:var(--r1)}
+
+/* Hotel / Flight */
+.hotel-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r2);padding:12px 14px;margin-bottom:9px;display:flex;gap:10px;align-items:flex-start}
+.hotel-icon{width:40px;height:40px;border-radius:var(--r1);background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hotel-name{font-size:13px;font-weight:600;color:var(--t1)}
+.hotel-dates{font-size:11px;color:var(--t2);margin-top:2px}
+.hotel-addr{font-size:11px;color:var(--blue);margin-top:3px;cursor:pointer}
+.hotel-addr:hover{text-decoration:underline}
+.hbadge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;background:var(--gl);color:var(--gd);margin-top:5px}
+.hbadge.pending{background:#FAEEDA;color:#854F0B}
+.flight-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r2);padding:12px 14px;margin-bottom:9px}
+.f-ap{font-size:20px;font-weight:700;color:var(--t1)}
+.f-mid{flex:1;text-align:center;position:relative}
+.f-line{height:1px;background:var(--bd2)}
+.f-dur{font-size:10px;color:var(--t3);position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 4px;white-space:nowrap}
+.f-time{font-size:12px;color:var(--t2);margin-top:2px}
+.f-meta{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--bd);flex-wrap:wrap}
+.f-detail{font-size:11px;color:var(--t2)}.f-detail span{color:var(--t1);font-weight:600}
+.f-dir-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;background:var(--bl);color:var(--blue)}
+
+/* Ledger */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.sum-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r1);padding:10px}
+.sum-lbl{font-size:10px;color:var(--t2);margin-bottom:3px}
+.sum-val{font-size:16px;font-weight:700;color:var(--t1)}
+.sum-sub{font-size:10px;color:var(--t3);margin-top:1px}
+.exp-row{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r1);padding:9px 12px;margin-bottom:7px;display:flex;align-items:center;gap:8px}
+.exp-icon{width:30px;height:30px;border-radius:var(--r1);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.exp-name{font-size:13px;font-weight:600;color:var(--t1)}
+.exp-meta{font-size:11px;color:var(--t2)}
+.pay-badge{display:inline-block;padding:1px 6px;border-radius:20px;font-size:10px;margin-top:2px}
+.pay-card-b{background:var(--bl);color:var(--blue)}
+.pay-cash-b{background:#EAF3DE;color:#3B6D11}
+.exp-amt{text-align:right;margin-left:auto;flex-shrink:0}
+.exp-twn{font-size:13px;font-weight:600;color:var(--t1)}
+.exp-orig{font-size:10px;color:var(--t3)}
+.pie-wrap{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r2);padding:14px;margin-bottom:14px}
+.pie-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:12px}
+.pie-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.pie-legend{display:flex;flex-direction:column;gap:6px;flex:1;min-width:120px}
+.legend-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-pct{margin-left:auto;font-weight:600;color:var(--t1)}
+
+/* Share / Permission panel */
+.share-panel{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r2);padding:14px;margin-bottom:12px}
+.share-panel h4{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:10px}
+.share-link-box{display:flex;gap:6px;margin-bottom:12px}
+.share-link-input{flex:1;font-size:12px;padding:7px 10px;border:0.5px solid var(--bd2);border-radius:var(--r1);background:var(--bg2);color:var(--t2);font-family:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy-btn{padding:7px 12px;background:var(--green);border:none;border-radius:var(--r1);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.perm-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--bd);font-size:13px}
+.perm-row:last-child{border-bottom:none}
+.perm-email{flex:1;color:var(--t1)}
+.perm-role{font-size:11px;padding:2px 8px;border-radius:20px}
+.perm-owner{background:var(--gl);color:var(--gd)}
+.perm-editor{background:var(--bl);color:var(--blue)}
+.perm-pending{background:#FAEEDA;color:#854F0B}
+.perm-btn{padding:3px 8px;font-size:11px;border:0.5px solid var(--bd2);border-radius:var(--r1);cursor:pointer;background:none;font-family:inherit;color:var(--t2)}
+.perm-btn.approve{border-color:var(--green);color:var(--green)}
+.perm-btn.reject{border-color:#E24B4A;color:#E24B4A}
+
+/* Buttons */
+.btn-add{padding:6px 12px;background:var(--green);color:#fff;border:none;border-radius:var(--r1);font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-add:hover{background:var(--gd)}
+
+/* Modal */
+.overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:100;align-items:flex-end;justify-content:center}
+@media(min-width:500px){.overlay{align-items:flex-start;padding-top:28px}}
+.overlay.on{display:flex}
+.modal{background:var(--bg);border-radius:var(--r2) var(--r2) 0 0;padding:18px 20px 32px;width:100%;max-width:420px;position:relative;max-height:92vh;overflow-y:auto}
+@media(min-width:500px){.modal{border-radius:var(--r2);padding-bottom:20px}}
+.modal-drag{width:36px;height:4px;background:var(--bd2);border-radius:2px;margin:0 auto 14px}
+@media(min-width:500px){.modal-drag{display:none}}
+.modal h3{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:13px}
+.fl{font-size:12px;color:var(--t2);margin-bottom:4px;display:block;margin-top:2px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.modal input,.modal select,.modal textarea{width:100%;font-size:14px;margin-bottom:10px;padding:9px 11px;border-radius:var(--r1);border:0.5px solid var(--bd2);background:var(--bg);color:var(--t1);font-family:inherit;outline:none;-webkit-appearance:none}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--green)}
+.modal textarea{height:56px;resize:none}
+.mbtns{display:flex;gap:8px;margin-top:6px}
+.btn-cancel{flex:1;padding:10px;border:0.5px solid var(--bd2);border-radius:var(--r1);background:none;cursor:pointer;font-size:14px;color:var(--t2);font-family:inherit}
+.btn-save{flex:1;padding:10px;background:var(--green);border:none;border-radius:var(--r1);color:#fff;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600}
+.btn-del{flex:1;padding:10px;border:0.5px solid #E24B4A;border-radius:var(--r1);background:none;cursor:pointer;font-size:14px;color:#E24B4A;font-family:inherit}
+.close-x{position:absolute;top:14px;right:16px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--t3)}
+.emoji-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.eopt{width:32px;height:32px;border-radius:var(--r1);border:0.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+.eopt.sel{border-color:var(--green);background:var(--gl)}
+.empty-state{text-align:center;padding:32px 20px;color:var(--t3);font-size:13px}
+.info-box{background:var(--gl);border-radius:var(--r1);padding:8px 10px;font-size:11px;color:var(--gd);margin-bottom:10px}
+
+/* Read-only banner */
+.readonly-banner{background:#FAEEDA;border-bottom:1px solid #f0c040;padding:8px 16px;font-size:12px;color:#856404;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.request-edit-btn{padding:4px 12px;background:#856404;border:none;border-radius:20px;color:#fff;font-size:11px;cursor:pointer;font-family:inherit}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* Loading */
+.loading{text-align:center;padding:60px 20px;color:var(--t3);font-size:14px}
+.spinner{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="readonly-banner" style="display:none" class="readonly-banner">
+  👁 你正在以唯讀模式查看此行程（記帳資訊已隱藏）
+  <button class="request-edit-btn" onclick="requestEdit()">申請編輯權限</button>
+</div>
+
+<div class="app" id="root">
+  <div class="topbar">
+    <div class="logo">旅<span>GO</span></div>
+    <div class="user-pill" id="upill" onclick="handleUserClick()">
+      <div class="avatar" id="uav">G</div>
+      <span id="uname">載入中...</span>
+    </div>
+  </div>
+  <div class="nav" id="mainnav" style="display:none">
+    <button class="nb on" onclick="switchNav(this)">我的行程</button>
+  </div>
+  <div class="body">
+    <div id="view-loading" class="view on"><div class="loading"><div class="spinner"></div>載入中...</div></div>
+    <div id="view-login" class="view">
+      <div class="login-screen">
+        <div class="big-icon">✈️</div>
+        <h1>旅GO</h1>
+        <p>登入後開始規劃你的旅程<br>行程・住宿・航班・記帳，換裝置也看得到</p>
+        <button class="btn-google" onclick="signInWithGoogle()">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff" opacity=".9"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#fff" opacity=".9"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#fff" opacity=".9"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#fff" opacity=".9"/></svg>
+          以 Google 帳號登入
+        </button>
+      </div>
+    </div>
+    <div id="view-trips" class="view">
+      <div class="row-hd" style="margin-bottom:13px"><div class="row-title">我的行程</div></div>
+      <div class="trips-grid" id="trips-grid"></div>
+    </div>
+    <div id="view-detail" class="view">
+      <button class="back-btn" onclick="goBack()">← 返回</button>
+      <div class="detail-title" id="detail-title"></div>
+      <div class="detail-sub" id="detail-sub"></div>
+      <div class="detail-actions">
+        <div class="sub-tabs" id="sub-tabs">
+          <button class="stab on" onclick="switchSub('itinerary',this)">行程</button>
+          <button class="stab" onclick="switchSub('hotel',this)">住宿</button>
+          <button class="stab" onclick="switchSub('flight',this)">航班</button>
+          <button class="stab" id="ledger-tab" onclick="switchSub('ledger',this)">記帳</button>
+        </div>
+        <div class="action-btns" id="action-btns">
+          <button class="icon-btn" onclick="openSharePanel()">🔗 分享</button>
+          <button class="icon-btn" onclick="downloadPDF()">📄 下載 PDF</button>
+        </div>
+      </div>
+      <div id="sub-itinerary" class="subview on"></div>
+      <div id="sub-hotel" class="subview"></div>
+      <div id="sub-flight" class="subview"></div>
+      <div id="sub-ledger" class="subview"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, collection, getDocs, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, arrayUnion, arrayRemove, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBkivgGrb1lzeD0HO2ZVbmM8Jtm-pLZuqM",
+  authDomain: "ryogo-feb00.firebaseapp.com",
+  projectId: "ryogo-feb00",
+  storageBucket: "ryogo-feb00.firebasestorage.app",
+  messagingSenderId: "856277746754",
+  appId: "1:856277746754:web:5f33d23dd2f80cbf2b59db"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+const OWM_KEY = '9cc19d4101ccfb00d48e90bdee2c17dd';
+
+/* ─── State ─── */
+let S = { user: null, trips: [], cur: null, selEmoji: '🗾', drag: {}, readOnly: false, isOwner: false, shareMode: false };
+const WDAYS = ['日','一','二','三','四','五','六'];
+const TEMOJIS = ['🗾','🏔','🌸','🏖','🏯','🍜','🌃','🦌','🌊','🎌','🏝','🗼'];
+const SEMOJIS = ['📍','⛩️','🍜','🏯','🛍️','🌸','🚢','🎡','🏖','🦌','🎌','☕','🏔','🎭','🌿','🎑','🚠','🍣','🍦','🏟'];
+const CICONS = {交通:'🚌',住宿:'🏨',餐飲:'🍜',購物:'🛍️',景點:'⛩️',其他:'📝'};
+const CBGS = {交通:'#E1F5EE',住宿:'#E6F1FB',餐飲:'#FAEEDA',購物:'#FAECE7',景點:'#EAF3DE',其他:'#F1EFE8'};
+const CPIE = ['#1D9E75','#185FA5','#EF9F27','#D4537E','#7F77DD','#888780'];
+const JPY = 0.226;
+
+/* expose globals */
+window.signInWithGoogle = async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { showToast('登入失敗，請再試一次'); }
+};
+window.handleUserClick = () => {
+  if (S.user) openUserMenu();
+  else window.signInWithGoogle();
+};
+
+/* ─── Auth state ─── */
+onAuthStateChanged(auth, async user => {
+  // check share mode first
+  const params = new URLSearchParams(location.search);
+  const shareId = params.get('share');
+  const tripId = params.get('trip');
+
+  if (shareId && tripId) {
+    // read-only share mode
+    S.shareMode = true;
+    S.readOnly = true;
+    document.getElementById('readonly-banner').style.display = 'flex';
+    if (user) {
+      S.user = user;
+      // check if user has edit permission
+      const perm = await getDoc(doc(db, 'trips', tripId, 'permissions', user.uid));
+      if (perm.exists() && (perm.data().role === 'editor' || perm.data().role === 'owner')) {
+        S.readOnly = false;
+        document.getElementById('readonly-banner').style.display = 'none';
+      }
+    }
+    await loadSharedTrip(tripId);
+    return;
+  }
+
+  if (user) {
+    S.user = user;
+    S.readOnly = false;
+    updateUserUI(user);
+    document.getElementById('mainnav').style.display = 'flex';
+    showView('view-trips');
+    await loadTrips();
+  } else {
+    S.user = null;
+    document.getElementById('uav').textContent = 'G';
+    document.getElementById('uname').textContent = '以 Google 登入';
+    document.getElementById('mainnav').style.display = 'none';
+    showView('view-login');
+  }
+});
+
+function updateUserUI(user) {
+  const av = document.getElementById('uav');
+  if (user.photoURL) av.innerHTML = `<img src="${user.photoURL}" alt="">`;
+  else av.textContent = (user.displayName || user.email || 'U')[0].toUpperCase();
+  document.getElementById('uname').textContent = (user.displayName || user.email || '').split(' ')[0];
+}
+
+/* ─── Sign out ─── */
+function openUserMenu() {
+  const box = document.getElementById('modal-box');
+  const u = S.user;
+  box.innerHTML = `<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>帳號</h3>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px;background:var(--bg2);border-radius:var(--r1)">
+      <div class="avatar" style="width:36px;height:36px;font-size:14px">${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : (u.displayName||'U')[0]}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--t1)">${esc(u.displayName||'')}</div>
+        <div style="font-size:11px;color:var(--t2)">${esc(u.email||'')}</div>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeModal()">關閉</button>
+      <button class="btn-del" onclick="doSignOut()">登出</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('on');
+}
+
+window.doSignOut = async () => { await signOut(auth); closeModal(); };
+
+/* ─── Load trips ─── */
+async function loadTrips() {
+  showView('view-trips');
+  const snap = await getDocs(collection(db, 'users', S.user.uid, 'trips'));
+  S.trips = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // also load shared trips where user is editor
+  const sharedSnap = await getDocs(collection(db, 'users', S.user.uid, 'sharedTrips'));
+  for (const d of sharedSnap.docs) {
+    const tripDoc = await getDoc(doc(db, 'trips', d.id));
+    if (tripDoc.exists()) S.trips.push({ id: d.id, shared: true, ...tripDoc.data() });
+  }
+  renderTrips();
+}
+
+async function loadSharedTrip(tripId) {
+  const tripDoc = await getDoc(doc(db, 'trips', tripId));
+  if (!tripDoc.exists()) { showView('view-login'); showToast('找不到此行程'); return; }
+  S.cur = { id: tripId, ...tripDoc.data() };
+  document.getElementById('mainnav').style.display = 'none';
+  setupDetailView();
+  showView('view-detail');
+  renderDays(S.cur);
+}
+
+/* ─── Trips list ─── */
+function renderTrips() {
+  const g = document.getElementById('trips-grid');
+  let html = '';
+  S.trips.forEach(t => {
+    const s = new Date(t.startDate), e = new Date(t.startDate);
+    e.setDate(e.getDate() + t.days - 1);
+    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+    const isOwner = !t.shared;
+    html += `<div class="trip-card" onclick="openTrip('${t.id}')" id="card-${t.id}">
+      ${isOwner ? `
+        <div class="card-menu-btn" onclick="toggleCardMenu(event,'${t.id}')">⋯</div>
+        <div class="card-dropdown" id="menu-${t.id}">
+          <div class="card-dropdown-item" onclick="openEditTrip(event,'${t.id}')">✏️ 編輯行程</div>
+          <div class="card-dropdown-item danger" onclick="confirmDeleteTrip(event,'${t.id}')">🗑 刪除行程</div>
+        </div>` : ''}
+      <div class="trip-cover" style="background:var(--gl)">${t.emoji}</div>
+      <div class="trip-name">${esc(t.name)}</div>
+      <div class="trip-sub">${fmt(s)} – ${fmt(e)}</div>
+      <span class="trip-badge">${t.days}天${t.nights}夜</span>
+      ${t.shared ? '<span class="hbadge" style="display:block;margin-top:4px;background:var(--bl);color:var(--blue)">共享</span>' : ''}
+    </div>`;
+  });
+  html += `<div class="add-trip-card" onclick="openAddTrip()"><div class="add-circle">+</div><div style="font-size:13px">新增行程</div></div>`;
+  g.innerHTML = html;
+  // close dropdowns when clicking outside
+  document.addEventListener('click', closeAllMenus, {once:true});
+}
+
+window.toggleCardMenu = (e, id) => {
+  e.stopPropagation();
+  const menu = document.getElementById('menu-'+id);
+  const wasOpen = menu.classList.contains('open');
+  closeAllMenus();
+  if (!wasOpen) {
+    menu.classList.add('open');
+    setTimeout(() => document.addEventListener('click', closeAllMenus, {once:true}), 0);
+  }
+};
+
+function closeAllMenus() {
+  document.querySelectorAll('.card-dropdown').forEach(m => m.classList.remove('open'));
+}
+
+window.openEditTrip = (e, id) => {
+  e.stopPropagation();
+  closeAllMenus();
+  const trip = S.trips.find(t => t.id === id);
+  if (!trip) return;
+  S.selEmoji = trip.emoji;
+  document.getElementById('modal-box').innerHTML = `<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>編輯行程</h3>
+    <span class="fl">行程標題</span><input type="text" id="m-title" value="${esca(trip.name)}">
+    <span class="fl">目的地（用於天氣查詢）</span><input type="text" id="m-loc" value="${esca(trip.location||'')}">
+    <span class="fl">封面圖示</span><div class="emoji-row">${epick(TEMOJIS, trip.emoji, 'te')}</div>
+    <span class="fl">出發日期</span><input type="date" id="m-date" value="${trip.startDate}">
+    <div class="frow">
+      <div><span class="fl">天數</span><input type="number" id="m-days" min="1" max="60" value="${trip.days}" style="margin-bottom:0"></div>
+      <div><span class="fl">夜數</span><input type="number" id="m-nights" min="0" max="60" value="${trip.nights}" style="margin-bottom:0"></div>
+    </div><div style="height:8px"></div>
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-save" onclick="doEditTrip('${id}')">儲存</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+
+window.doEditTrip = async (id) => {
+  const title = document.getElementById('m-title').value.trim();
+  const date = document.getElementById('m-date').value;
+  const days = parseInt(document.getElementById('m-days').value) || 1;
+  const nights = parseInt(document.getElementById('m-nights').value) || 0;
+  const loc = document.getElementById('m-loc').value.trim();
+  if (!title || !date) { alert('請填寫標題與日期'); return; }
+  const trip = S.trips.find(t => t.id === id);
+  if (!trip) return;
+  // if days increased, add empty spot arrays
+  const oldDays = trip.days;
+  trip.name = title; trip.emoji = S.selEmoji; trip.startDate = date;
+  trip.days = days; trip.nights = nights; trip.location = loc;
+  if (days > oldDays) { for (let i = oldDays+1; i <= days; i++) if (!trip.spots[i]) trip.spots[i] = []; }
+  await saveTrip(trip);
+  closeModal(); renderTrips(); showToast('✅ 行程已更新');
+};
+
+window.confirmDeleteTrip = (e, id) => {
+  e.stopPropagation();
+  closeAllMenus();
+  const trip = S.trips.find(t => t.id === id);
+  if (!trip) return;
+  document.getElementById('modal-box').innerHTML = `<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>刪除行程</h3>
+    <div style="padding:12px;background:#FCEBEB;border-radius:var(--r1);margin-bottom:14px;font-size:13px;color:#A32D2D">
+      ⚠️ 確定要刪除「${esc(trip.name)}」嗎？<br>行程內所有景點、住宿、航班、記帳資料將一併刪除，<strong>無法復原</strong>。
+    </div>
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-del" onclick="doDeleteTrip('${id}')">確定刪除</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+
+window.doDeleteTrip = async (id) => {
+  const userRef = doc(db, 'users', S.user.uid, 'trips', id);
+  const masterRef = doc(db, 'trips', id);
+  await deleteDoc(userRef);
+  await deleteDoc(masterRef);
+  S.trips = S.trips.filter(t => t.id !== id);
+  closeModal(); renderTrips(); showToast('🗑 行程已刪除');
+};
+
+window.openTrip = async (id) => {
+  const trip = S.trips.find(t => t.id === id);
+  if (!trip) return;
+  S.cur = trip;
+  S.readOnly = false;
+  S.isOwner = !trip.shared;
+  setupDetailView();
+  showView('view-detail');
+  renderDays(trip);
+};
+
+function setupDetailView() {
+  const trip = S.cur;
+  document.getElementById('detail-title').textContent = trip.name;
+  const s = new Date(trip.startDate), e = new Date(trip.startDate);
+  e.setDate(e.getDate() + trip.days - 1);
+  document.getElementById('detail-sub').textContent = `${s.getMonth()+1}/${s.getDate()} – ${e.getMonth()+1}/${e.getDate()}　${trip.days}天${trip.nights}夜`;
+  document.querySelectorAll('.stab').forEach((b,i) => b.classList.toggle('on', i===0));
+  document.querySelectorAll('.subview').forEach((v,i) => v.classList.toggle('on', i===0));
+  // hide ledger tab if read-only
+  document.getElementById('ledger-tab').style.display = S.readOnly ? 'none' : '';
+  // hide action buttons in share mode
+  document.getElementById('action-btns').style.display = S.readOnly ? 'none' : '';
+}
+
+/* ─── Sub tabs ─── */
+window.switchSub = (id, btn) => {
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('on')); btn.classList.add('on');
+  document.querySelectorAll('.subview').forEach(v => v.classList.remove('on'));
+  document.getElementById('sub-'+id).classList.add('on');
+  const trip = S.cur; if (!trip) return;
+  if (id==='hotel') renderHotels(trip);
+  else if (id==='flight') renderFlights(trip);
+  else if (id==='ledger') renderLedger(trip);
+  else renderDays(trip);
+};
+
+/* ─── Weather ─── */
+const weatherCache = {};
+async function fetchWeather(trip) {
+  const city = trip.location || trip.name;
+  if (weatherCache[trip.id]) return weatherCache[trip.id];
+  const startDate = new Date(trip.startDate);
+  const today = new Date();
+  const diffDays = Math.ceil((startDate - today) / 86400000);
+  if (diffDays > 5 || diffDays < -1) return null; // too far
+  try {
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${OWM_KEY}&units=metric&lang=zh_tw&cnt=40`);
+    const data = await res.json();
+    if (data.cod !== '200') return null;
+    // group by day
+    const days = {};
+    data.list.forEach(item => {
+      const d = item.dt_txt.split(' ')[0];
+      if (!days[d]) days[d] = [];
+      days[d].push(item);
+    });
+    const result = {};
+    Object.keys(days).forEach(d => {
+      const items = days[d];
+      const icons = {Clear:'☀️',Clouds:'⛅',Rain:'🌧',Drizzle:'🌦',Thunderstorm:'⛈',Snow:'❄️',Mist:'🌫',Fog:'🌫'};
+      const main = items[Math.floor(items.length/2)].weather[0].main;
+      result[d] = {
+        icon: icons[main] || '🌤',
+        desc: items[Math.floor(items.length/2)].weather[0].description,
+        hi: Math.round(Math.max(...items.map(i=>i.main.temp_max))),
+        lo: Math.round(Math.min(...items.map(i=>i.main.temp_min)))
+      };
+    });
+    weatherCache[trip.id] = result;
+    return result;
+  } catch(e) { return null; }
+}
+
+function getDateStr(startDate, dayNum) {
+  const d = new Date(startDate);
+  d.setDate(d.getDate() + dayNum - 1);
+  return d.toISOString().split('T')[0];
+}
+
+/* ─── Itinerary ─── */
+async function renderDays(trip) {
+  const c = document.getElementById('sub-itinerary');
+  const weather = await fetchWeather(trip);
+  const start = new Date(trip.startDate);
+  // weather bar
+  let wbar = '';
+  if (weather) {
+    wbar = '<div class="weather-bar">';
+    for (let d = 1; d <= trip.days; d++) {
+      const dateStr = getDateStr(trip.startDate, d);
+      const w = weather[dateStr];
+      if (!w) continue;
+      const dd = new Date(start); dd.setDate(dd.getDate()+d-1);
+      wbar += `<div class="weather-chip-big"><div class="wc-day">${dd.getMonth()+1}/${dd.getDate()}</div><div class="wc-icon">${w.icon}</div><div class="wc-temp">${w.hi}°/${w.lo}°</div><div class="wc-desc">${w.desc}</div></div>`;
+    }
+    wbar += '</div>';
+  } else {
+    wbar = `<div class="weather-note">🌡 天氣預報將在出發前 5 天自動顯示（資料來源：OpenWeatherMap）</div>`;
+  }
+
+  let html = '';
+  for (let d = 1; d <= trip.days; d++) {
+    const dd = new Date(start); dd.setDate(dd.getDate()+d-1);
+    const dlbl = `${dd.getMonth()+1}/${dd.getDate()}（${WDAYS[dd.getDay()]}）`;
+    const dateStr = getDateStr(trip.startDate, d);
+    const w = weather ? weather[dateStr] : null;
+    const spots = (trip.spots && trip.spots[d]) || [];
+    let sh = '';
+    spots.forEach((s, si) => {
+      const editable = !S.readOnly;
+      sh += `<div class="spot-row ${editable?'draggable':''}" ${editable?`draggable="true" ondragstart="dndStart(event,${d},${si})" ondragover="dndOver(event)" ondrop="dndDrop(event,${d},${si},'${trip.id}')" ondragend="dndEnd(event)"`:''}>
+        ${editable ? '<span class="drag-handle">⠿</span>' : ''}
+        <div class="spot-thumb">${s.emoji}</div>
+        <div class="spot-info-col">
+          <div class="spot-name">${esc(s.name)}</div>
+          <div class="spot-meta">
+            <span class="spot-time">${s.time} – ${s.end}</span>
+            ${s.note ? `<span class="spot-note">${esc(s.note)}</span>` : ''}
+          </div>
+        </div>
+        <div class="spot-acts">
+          <button class="btn-map" onclick="openMap('${escq(s.name)}','${escq(s.mapUrl||'')}')">地圖</button>
+          ${editable ? `<button class="btn-sm" onclick="openEditSpot('${trip.id}',${d},${si})">編輯</button>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `<div class="day-block">
+      <div class="day-hd" onclick="toggleDay(this)">
+        <div class="day-num">${d}</div>
+        <div style="flex:1"><div class="day-label">第 ${d} 天</div><div class="day-date-lbl">${dlbl}</div></div>
+        ${w ? `<div class="weather-chip">${w.icon} ${w.hi}°</div>` : ''}
+        <div class="day-arr" style="margin-left:8px">▾</div>
+      </div>
+      <div class="day-body">
+        ${sh}
+        ${!S.readOnly ? `<div class="add-spot-row" onclick="openAddSpot('${trip.id}',${d})"><div class="add-spot-plus">+</div>新增景點</div>` : ''}
+      </div>
+    </div>`;
+  }
+  c.innerHTML = wbar + html;
+}
+
+window.toggleDay = el => {
+  const body = el.nextElementSibling;
+  const arr = el.querySelector('.day-arr');
+  if (body.style.display === 'none') { body.style.display='block'; arr.textContent='▾'; }
+  else { body.style.display='none'; arr.textContent='▸'; }
+};
+
+/* ─── DnD ─── */
+window.dndStart = (e,day,idx) => { S.drag={srcDay:day,srcIdx:idx}; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; };
+window.dndOver = e => e.preventDefault();
+window.dndDrop = async (e,day,idx,tripId) => {
+  e.preventDefault();
+  const trip = S.trips.find(t=>t.id===tripId); if(!trip) return;
+  const {srcDay,srcIdx} = S.drag;
+  if(srcDay===day&&srcIdx===idx) return;
+  const src = [...(trip.spots[srcDay]||[])];
+  const tgt = srcDay===day ? src : [...(trip.spots[day]||[])];
+  const item = src.splice(srcIdx,1)[0];
+  if(srcDay===day) src.splice(idx,0,item); else tgt.splice(idx,0,item);
+  trip.spots[srcDay]=src; trip.spots[day]=tgt;
+  await saveTrip(trip);
+  renderDays(trip);
+};
+window.dndEnd = e => e.currentTarget.classList.remove('dragging');
+
+/* ─── Firestore save ─── */
+async function saveTrip(trip) {
+  const ref = trip.shared
+    ? doc(db, 'trips', trip.id)
+    : doc(db, 'users', S.user.uid, 'trips', trip.id);
+  await setDoc(ref, trip, {merge:true});
+  // also save to master trips collection for sharing
+  if (!trip.shared) await setDoc(doc(db,'trips',trip.id), trip, {merge:true});
+}
+
+/* ─── Map / Nav ─── */
+window.openMap = (q, url) => {
+  if (url && url.trim()) window.open(url.trim(), '_blank');
+  else window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
+};
+window.goBack = () => { showView('view-trips'); S.cur=null; };
+window.switchNav = btn => { document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); showView('view-trips'); loadTrips(); };
+
+/* ─── Modal ─── */
+window.closeModal = () => document.getElementById('overlay').classList.remove('on');
+document.getElementById('overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+window.selEmoji = (e,cls) => { S.selEmoji=e; document.querySelectorAll('.'+cls).forEach(el=>el.classList.toggle('sel',el.dataset.e===e)); };
+const epick = (list,sel,cls) => list.map(e=>`<div class="eopt${e===sel?' sel':''}" data-e="${e}" onclick="selEmoji('${e}','${cls}')">${e}</div>`).join('');
+
+/* ─── Add Trip ─── */
+window.openAddTrip = () => {
+  S.selEmoji='🗾';
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>新增行程</h3>
+    <span class="fl">行程標題</span><input type="text" id="m-title" placeholder="例：北海道 5 天 4 夜">
+    <span class="fl">目的地（用於天氣查詢）</span><input type="text" id="m-loc" placeholder="例：Hokkaido">
+    <span class="fl">封面圖示</span><div class="emoji-row">${epick(TEMOJIS,'🗾','te')}</div>
+    <span class="fl">出發日期</span><input type="date" id="m-date">
+    <div class="frow"><div><span class="fl">天數</span><input type="number" id="m-days" min="1" max="60" placeholder="5" style="margin-bottom:0"></div>
+    <div><span class="fl">夜數</span><input type="number" id="m-nights" min="0" max="60" placeholder="4" style="margin-bottom:0"></div></div>
+    <div style="height:8px"></div>
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-save" onclick="doAddTrip()">建立行程</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+
+window.doAddTrip = async () => {
+  const title=document.getElementById('m-title').value.trim();
+  const date=document.getElementById('m-date').value;
+  const days=parseInt(document.getElementById('m-days').value)||1;
+  const nights=parseInt(document.getElementById('m-nights').value)||0;
+  const loc=document.getElementById('m-loc').value.trim();
+  if(!title||!date){alert('請填寫標題與日期');return;}
+  const spots={};for(let i=1;i<=days;i++)spots[i]=[];
+  const newTrip={name:title,emoji:S.selEmoji,startDate:date,days,nights,location:loc,spots,hotels:[],flights:[],expenses:[],ownerId:S.user.uid,ownerEmail:S.user.email,createdAt:Date.now()};
+  const ref=doc(collection(db,'users',S.user.uid,'trips'));
+  newTrip.id=ref.id;
+  await setDoc(ref,newTrip);
+  await setDoc(doc(db,'trips',ref.id),newTrip);
+  S.trips.push(newTrip);
+  closeModal();renderTrips();showToast('✅ 行程已建立');
+};
+
+/* ─── Spot ─── */
+window.openAddSpot = (tripId, day) => {
+  S.selEmoji='📍';
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>新增景點 — 第 ${day} 天</h3>
+    <span class="fl">景點名稱</span><input type="text" id="s-name" placeholder="例：旭山動物園">
+    <span class="fl">圖示</span><div class="emoji-row">${epick(SEMOJIS,'📍','se')}</div>
+    <div class="frow"><div><span class="fl">開始</span><input type="time" id="s-start" value="09:00" style="margin-bottom:0"></div>
+    <div><span class="fl">結束</span><input type="time" id="s-end" value="11:00" style="margin-bottom:0"></div></div>
+    <div style="height:6px"></div>
+    <span class="fl">Google Maps 連結（選填）</span>
+    <input type="url" id="s-mapurl" placeholder="貼上 Google Maps 網址，沒有則留空">
+    <div class="info-box" style="margin-top:-4px">💡 有填連結 → 點地圖直接開啟；沒填 → 用景點名稱搜尋</div>
+    <span class="fl">備註</span><textarea id="s-note" placeholder="票價、注意事項…"></textarea>
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-save" onclick="doAddSpot('${tripId}',${day})">加入</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+
+window.doAddSpot = async (tripId,day) => {
+  const name=document.getElementById('s-name').value.trim(); if(!name){alert('請填景點名稱');return;}
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur;
+  if(!trip.spots[day])trip.spots[day]=[];
+  trip.spots[day].push({
+    name, emoji:S.selEmoji,
+    time:document.getElementById('s-start').value,
+    end:document.getElementById('s-end').value,
+    mapUrl:document.getElementById('s-mapurl').value.trim(),
+    note:document.getElementById('s-note').value.trim()
+  });
+  await saveTrip(trip);closeModal();renderDays(trip);showToast('✅ 景點已加入');
+};
+
+window.openEditSpot = (tripId,day,idx) => {
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur; const s=trip.spots[day][idx]; S.selEmoji=s.emoji;
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>編輯景點</h3>
+    <span class="fl">景點名稱</span><input type="text" id="s-name" value="${esca(s.name)}">
+    <span class="fl">圖示</span><div class="emoji-row">${epick(SEMOJIS,s.emoji,'se')}</div>
+    <div class="frow"><div><span class="fl">開始</span><input type="time" id="s-start" value="${s.time}" style="margin-bottom:0"></div>
+    <div><span class="fl">結束</span><input type="time" id="s-end" value="${s.end}" style="margin-bottom:0"></div></div>
+    <div style="height:6px"></div>
+    <span class="fl">Google Maps 連結（選填）</span>
+    <input type="url" id="s-mapurl" value="${esca(s.mapUrl||'')}" placeholder="貼上 Google Maps 網址，沒有則留空">
+    <div class="info-box" style="margin-top:-4px">💡 有填連結 → 點地圖直接開啟；沒填 → 用景點名稱搜尋</div>
+    <span class="fl">備註</span><textarea id="s-note">${esc(s.note)}</textarea>
+    <div class="mbtns"><button class="btn-del" onclick="doDelSpot('${tripId}',${day},${idx})">刪除</button><button class="btn-save" onclick="doUpdateSpot('${tripId}',${day},${idx})">儲存</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+
+window.doUpdateSpot = async (tripId,day,idx) => {
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur; const s=trip.spots[day][idx];
+  s.name=document.getElementById('s-name').value.trim()||s.name; s.emoji=S.selEmoji;
+  s.time=document.getElementById('s-start').value; s.end=document.getElementById('s-end').value;
+  s.mapUrl=document.getElementById('s-mapurl').value.trim();
+  s.note=document.getElementById('s-note').value.trim();
+  await saveTrip(trip);closeModal();renderDays(trip);showToast('✅ 景點已更新');
+};
+window.doDelSpot = async (tripId,day,idx) => {
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur; trip.spots[day].splice(idx,1);
+  await saveTrip(trip);closeModal();renderDays(trip);
+};
+
+/* ─── Hotels ─── */
+async function renderHotels(trip) {
+  const c=document.getElementById('sub-hotel');
+  let html=`<div class="row-hd"><div class="row-title">住宿安排</div>${!S.readOnly?`<button class="btn-add" onclick="openAddHotel('${trip.id}')">＋ 新增</button>`:''}</div>`;
+  if(!trip.hotels||!trip.hotels.length){html+=`<div class="empty-state">尚未新增住宿<br><span style="font-size:24px;display:block;margin-top:8px">🏨</span></div>`;}
+  else trip.hotels.forEach((h,hi)=>{
+    const ci=new Date(h.checkin),co=new Date(h.checkout); const n=Math.round((co-ci)/86400000);
+    html+=`<div class="hotel-card"><div class="hotel-icon">${h.icon}</div><div style="flex:1">
+      <div class="hotel-name">${esc(h.name)}</div>
+      <div class="hotel-dates">${ci.getMonth()+1}/${ci.getDate()} – ${co.getMonth()+1}/${co.getDate()} · ${n} 晚</div>
+      ${h.addr?`<div class="hotel-addr" onclick="openMap('${escq(h.name)}')">📍 ${esc(h.addr)}</div>`:''}
+      <span class="hbadge${h.confirmed?'':' pending'}">${h.confirmed?'已確認':'待確認'}</span>
+    </div>${!S.readOnly?`<button class="btn-sm" onclick="doDelHotel('${trip.id}',${hi})">移除</button>`:''}</div>`;
+  });
+  c.innerHTML=html;
+}
+
+window.openAddHotel = tripId => {
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>新增住宿</h3>
+    <span class="fl">飯店名稱</span><input type="text" id="h-name" placeholder="例：札幌 JR 塔飯店">
+    <span class="fl">地址</span><input type="text" id="h-addr" placeholder="地址">
+    <div class="frow"><div><span class="fl">入住</span><input type="date" id="h-ci" style="margin-bottom:0"></div>
+    <div><span class="fl">退房</span><input type="date" id="h-co" style="margin-bottom:0"></div></div><div style="height:8px"></div>
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-save" onclick="doAddHotel('${tripId}')">加入</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+window.doAddHotel = async tripId => {
+  const name=document.getElementById('h-name').value.trim(); const ci=document.getElementById('h-ci').value; const co=document.getElementById('h-co').value;
+  if(!name||!ci||!co){alert('請填寫必要資訊');return;}
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur;
+  trip.hotels.push({name,icon:'🏨',checkin:ci,checkout:co,addr:document.getElementById('h-addr').value.trim(),confirmed:false});
+  await saveTrip(trip);closeModal();renderHotels(trip);showToast('✅ 住宿已加入');
+};
+window.doDelHotel = async (tripId,idx) => {
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur; trip.hotels.splice(idx,1); await saveTrip(trip); renderHotels(trip);
+};
+
+/* ─── Flights ─── */
+async function renderFlights(trip) {
+  const c=document.getElementById('sub-flight');
+  let html=`<div class="row-hd"><div class="row-title">航班資訊</div>${!S.readOnly?`<button class="btn-add" onclick="openAddFlight('${trip.id}')">＋ 新增</button>`:''}</div>`;
+  if(!trip.flights||!trip.flights.length){html+=`<div class="empty-state">尚未新增航班<br><span style="font-size:24px;display:block;margin-top:8px">✈️</span></div>`;}
+  else trip.flights.forEach((f,fi)=>{
+    html+=`<div class="flight-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <span class="f-dir-badge">${f.dir}</span>
+        ${!S.readOnly?`<button class="btn-sm" onclick="doDelFlight('${trip.id}',${fi})">移除</button>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div><div class="f-ap">${f.from}</div><div class="f-time">${f.dep}</div></div>
+        <div class="f-mid"><div class="f-line"></div><div class="f-dur">${f.dur}</div></div>
+        <div style="text-align:right"><div class="f-ap">${f.to}</div><div class="f-time">${f.arr}</div></div>
+      </div>
+      <div class="f-meta">
+        <div class="f-detail">日期 <span>${f.date}</span></div>
+        <div class="f-detail">航班 <span>${f.no}</span></div>
+        <div class="f-detail">艙等 <span>${f.cabin}</span></div>
+        <div class="f-detail">座位 <span>${f.seat}</span></div>
+      </div></div>`;
+  });
+  c.innerHTML=html;
+}
+window.openAddFlight = tripId => {
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>新增航班</h3>
+    <span class="fl">方向</span><select id="f-dir"><option>去程</option><option>回程</option><option>轉機</option></select>
+    <div class="frow"><div><span class="fl">出發機場</span><input type="text" id="f-from" placeholder="TPE" style="margin-bottom:0;text-transform:uppercase"></div>
+    <div><span class="fl">抵達機場</span><input type="text" id="f-to" placeholder="CTS" style="margin-bottom:0;text-transform:uppercase"></div></div><div style="height:6px"></div>
+    <div class="frow"><div><span class="fl">出發時間</span><input type="time" id="f-dep" style="margin-bottom:0"></div>
+    <div><span class="fl">抵達時間</span><input type="time" id="f-arr" style="margin-bottom:0"></div></div><div style="height:6px"></div>
+    <div class="frow"><div><span class="fl">航班號碼</span><input type="text" id="f-no" placeholder="CI 151" style="margin-bottom:0"></div>
+    <div><span class="fl">座位</span><input type="text" id="f-seat" placeholder="23A" style="margin-bottom:0"></div></div><div style="height:6px"></div>
+    <span class="fl">日期</span><input type="date" id="f-date">
+    <span class="fl">飛行時間</span><input type="text" id="f-dur" placeholder="3h 05m">
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-save" onclick="doAddFlight('${tripId}')">加入</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+window.doAddFlight = async tripId => {
+  const from=document.getElementById('f-from').value.trim().toUpperCase(); const to=document.getElementById('f-to').value.trim().toUpperCase(); const date=document.getElementById('f-date').value;
+  if(!from||!to||!date){alert('請填機場與日期');return;}
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur;
+  trip.flights.push({from,to,dep:document.getElementById('f-dep').value,arr:document.getElementById('f-arr').value,date,no:document.getElementById('f-no').value,seat:document.getElementById('f-seat').value,cabin:'經濟艙',dur:document.getElementById('f-dur').value||'—',dir:document.getElementById('f-dir').value});
+  await saveTrip(trip);closeModal();renderFlights(trip);showToast('✅ 航班已加入');
+};
+window.doDelFlight = async (tripId,idx) => {
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur; trip.flights.splice(idx,1); await saveTrip(trip); renderFlights(trip);
+};
+
+/* ─── Ledger ─── */
+async function renderLedger(trip) {
+  const c=document.getElementById('sub-ledger');
+  const exps=trip.expenses||[];
+  const total=exps.reduce((s,e)=>s+e.amount,0);
+  const card=exps.filter(e=>e.pay==='card').reduce((s,e)=>s+e.amount,0);
+  const cash=total-card;
+  let html=`<div class="row-hd"><div class="row-title">旅費記帳</div><button class="btn-add" onclick="openAddExp('${trip.id}')">＋ 新增</button></div>
+    <div class="sum-grid">
+      <div class="sum-card"><div class="sum-lbl">總支出（台幣）</div><div class="sum-val">NT$${total.toLocaleString()}</div><div class="sum-sub">${exps.length} 筆</div></div>
+      <div class="sum-card"><div class="sum-lbl">刷卡</div><div class="sum-val">NT$${card.toLocaleString()}</div><div class="sum-sub">${exps.filter(e=>e.pay==='card').length} 筆</div></div>
+      <div class="sum-card"><div class="sum-lbl">現金</div><div class="sum-val">NT$${cash.toLocaleString()}</div><div class="sum-sub">${exps.filter(e=>e.pay==='cash').length} 筆</div></div>
+    </div>`;
+  // pie chart
+  if (exps.length > 0) {
+    const cats={};
+    exps.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
+    const entries=Object.keys(cats).map(k=>({cat:k,amt:cats[k]})).sort((a,b)=>b.amt-a.amt);
+    const sz=120,cx=60,cy=60,r=50;let start=0,slices='';
+    entries.forEach((e,i)=>{
+      const pct=e.amt/total; const angle=pct*2*Math.PI;
+      const x1=cx+r*Math.sin(start),y1=cy-r*Math.cos(start);
+      const x2=cx+r*Math.sin(start+angle),y2=cy-r*Math.cos(start+angle);
+      const lg=angle>Math.PI?1:0;
+      slices+=`<path d="M${cx} ${cy} L${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 ${lg} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z" fill="${CPIE[i%CPIE.length]}"/>`;
+      start+=angle;
+    });
+    const legend=entries.map((e,i)=>`<div class="legend-row"><div class="legend-dot" style="background:${CPIE[i%CPIE.length]}"></div><span>${e.cat}</span><span class="legend-pct">${Math.round(e.amt/total*100)}%</span></div>`).join('');
+    html+=`<div class="pie-wrap"><div class="pie-title">支出分類</div><div class="pie-inner">
+      <svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="flex-shrink:0">${slices}</svg>
+      <div class="pie-legend">${legend}</div></div></div>`;
+  }
+  if(!exps.length){html+=`<div class="empty-state">尚未新增支出<br><span style="font-size:24px;display:block;margin-top:8px">💰</span></div>`;}
+  else exps.forEach((e,ei)=>{
+    const bg=CBGS[e.cat]||'#F1EFE8';
+    html+=`<div class="exp-row">
+      <div class="exp-icon" style="background:${bg}">${e.icon}</div>
+      <div style="flex:1;min-width:0"><div class="exp-name">${esc(e.name)}</div><div class="exp-meta">${e.date} · ${e.cat}</div>
+      <span class="pay-badge ${e.pay==='card'?'pay-card-b':'pay-cash-b'}">${e.pay==='card'?'刷卡':'現金'}</span></div>
+      <div class="exp-amt"><div class="exp-twn">NT$${e.amount.toLocaleString()}</div><div class="exp-orig">${e.orig}</div></div>
+      <button class="btn-sm" onclick="doDelExp('${trip.id}',${ei})" style="margin-left:5px">✕</button>
+    </div>`;
+  });
+  c.innerHTML=html;
+}
+window.openAddExp = tripId => {
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>新增支出</h3>
+    <span class="fl">項目名稱</span><input type="text" id="e-name" placeholder="例：拉麵、門票、藥妝">
+    <div class="frow"><div><span class="fl">幣別</span><select id="e-cur" style="margin-bottom:0"><option value="TWD">台幣（TWD）</option><option value="JPY">日幣（JPY）</option></select></div>
+    <div><span class="fl">金額</span><input type="number" id="e-amt" placeholder="0" min="0" style="margin-bottom:0"></div></div><div style="height:6px"></div>
+    <div class="frow"><div><span class="fl">付款方式</span><select id="e-pay" style="margin-bottom:0"><option value="card">刷卡</option><option value="cash">現金</option></select></div>
+    <div><span class="fl">類別</span><select id="e-cat" style="margin-bottom:0"><option>交通</option><option>住宿</option><option>餐飲</option><option>購物</option><option>景點</option><option>其他</option></select></div></div><div style="height:6px"></div>
+    <span class="fl">日期</span><input type="date" id="e-date">
+    <div class="info-box">💡 日幣依匯率 0.226 自動換算台幣</div>
+    <div class="mbtns"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-save" onclick="doAddExp('${tripId}')">加入</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+window.doAddExp = async tripId => {
+  const name=document.getElementById('e-name').value.trim(); const date=document.getElementById('e-date').value;
+  if(!name||!date){alert('請填寫名稱與日期');return;}
+  const amt=parseFloat(document.getElementById('e-amt').value)||0;
+  const cur=document.getElementById('e-cur').value; const pay=document.getElementById('e-pay').value; const cat=document.getElementById('e-cat').value;
+  const twd=cur==='JPY'?Math.round(amt*JPY):Math.round(amt);
+  const orig=cur==='JPY'?`¥ ${Math.round(amt).toLocaleString()}`:`TWD ${Math.round(amt).toLocaleString()}`;
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur;
+  trip.expenses.push({name,icon:CICONS[cat]||'📝',cat,pay,amount:twd,orig,date});
+  await saveTrip(trip);closeModal();renderLedger(trip);showToast('✅ 支出已記錄');
+};
+window.doDelExp = async (tripId,idx) => {
+  const trip=S.trips.find(t=>t.id===tripId)||S.cur; trip.expenses.splice(idx,1); await saveTrip(trip); renderLedger(trip);
+};
+
+/* ─── Share & Permissions ─── */
+window.openSharePanel = () => {
+  const trip=S.cur; if(!trip) return;
+  const shareUrl=`${location.origin}${location.pathname}?share=1&trip=${trip.id}`;
+  const perms=trip.permissions||{};
+  let permRows=`<div class="perm-row"><div class="perm-email">👑 ${esc(S.user.email)} (你)</div><span class="perm-role perm-owner">擁有者</span></div>`;
+  Object.entries(perms).forEach(([uid,p])=>{
+    if(p.role==='pending'){
+      permRows+=`<div class="perm-row"><div class="perm-email">${esc(p.email)}</div><span class="perm-role perm-pending">申請中</span>
+        <button class="perm-btn approve" onclick="approveEdit('${trip.id}','${uid}','${esc(p.email)}')">核准</button>
+        <button class="perm-btn reject" onclick="rejectEdit('${trip.id}','${uid}')">拒絕</button></div>`;
+    } else if(p.role==='editor'){
+      permRows+=`<div class="perm-row"><div class="perm-email">${esc(p.email)}</div><span class="perm-role perm-editor">可編輯</span>
+        <button class="perm-btn reject" onclick="revokeEdit('${trip.id}','${uid}')">撤銷</button></div>`;
+    }
+  });
+  document.getElementById('modal-box').innerHTML=`<div class="modal-drag"></div><button class="close-x" onclick="closeModal()">✕</button>
+    <h3>🔗 分享行程</h3>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:8px">朋友打開連結可以查看行程、住宿、航班（記帳隱藏）。若需要編輯，需申請後由你核准。</div>
+    <div class="share-link-box">
+      <input class="share-link-input" value="${shareUrl}" readonly id="share-url">
+      <button class="copy-btn" onclick="copyShareUrl()">複製</button>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:var(--t1);margin-bottom:8px">權限管理</div>
+    <div>${permRows}</div>
+    <div class="mbtns" style="margin-top:12px"><button class="btn-cancel" onclick="closeModal()">關閉</button></div>`;
+  document.getElementById('overlay').classList.add('on');
+};
+
+window.copyShareUrl = () => {
+  const url=document.getElementById('share-url').value;
+  if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>showToast('🔗 連結已複製！'));
+  else { document.getElementById('share-url').select(); document.execCommand('copy'); showToast('🔗 連結已複製！'); }
+};
+
+window.requestEdit = async () => {
+  if(!S.user){await window.signInWithGoogle();return;}
+  const tripId=new URLSearchParams(location.search).get('trip');
+  const tripRef=doc(db,'trips',tripId);
+  const tripDoc=await getDoc(tripRef);
+  if(!tripDoc.exists()) return;
+  const trip=tripDoc.data();
+  const perms=trip.permissions||{};
+  perms[S.user.uid]={role:'pending',email:S.user.email,displayName:S.user.displayName||''};
+  await setDoc(tripRef,{permissions:perms},{merge:true});
+  showToast('✅ 已送出申請，等待擁有者核准');
+  document.querySelector('.request-edit-btn').textContent='已送出申請';
+  document.querySelector('.request-edit-btn').disabled=true;
+};
+
+window.approveEdit = async (tripId,uid,email) => {
+  const tripRef=doc(db,'trips',tripId);
+  const userTripRef=doc(db,'users',uid,'sharedTrips',tripId);
+  const perms=(S.cur.permissions||{}); perms[uid]={role:'editor',email};
+  await setDoc(tripRef,{permissions:perms},{merge:true});
+  await setDoc(userTripRef,{tripId,grantedAt:Date.now()});
+  S.cur.permissions=perms;
+  openSharePanel(); showToast('✅ 已核准編輯權限');
+};
+window.rejectEdit = async (tripId,uid) => {
+  const tripRef=doc(db,'trips',tripId);
+  const perms=S.cur.permissions||{}; delete perms[uid];
+  await setDoc(tripRef,{permissions:perms},{merge:true});
+  S.cur.permissions=perms; openSharePanel();
+};
+window.revokeEdit = async (tripId,uid) => {
+  const tripRef=doc(db,'trips',tripId);
+  const perms=S.cur.permissions||{}; delete perms[uid];
+  await setDoc(tripRef,{permissions:perms},{merge:true});
+  await deleteDoc(doc(db,'users',uid,'sharedTrips',tripId));
+  S.cur.permissions=perms; openSharePanel(); showToast('已撤銷編輯權限');
+};
+
+/* ─── PDF Download ─── */
+window.downloadPDF = () => {
+  const trip=S.cur; if(!trip) return;
+  const start=new Date(trip.startDate);
+  let html=`<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">
+    <style>
+      body{font-family:sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto;font-size:14px}
+      h1{font-size:28px;color:#1D9E75;margin-bottom:4px}
+      .sub{color:#6b6b6b;margin-bottom:32px;font-size:14px}
+      h2{font-size:18px;color:#1D9E75;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #E1F5EE}
+      h3{font-size:14px;font-weight:600;margin:14px 0 6px;color:#333}
+      .day-block{margin-bottom:18px;page-break-inside:avoid}
+      .spot{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0}
+      .spot-icon{font-size:20px;width:30px;flex-shrink:0}
+      .spot-name{font-weight:600}
+      .spot-time{color:#6b6b6b;font-size:12px}
+      .spot-note{color:#9b9b9b;font-size:12px}
+      .hotel-row{padding:10px 0;border-bottom:1px solid #f0f0f0}
+      .hotel-name{font-weight:600}
+      .hotel-info{color:#6b6b6b;font-size:12px;margin-top:2px}
+      .flight-card{border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px;page-break-inside:avoid}
+      .flight-route{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+      .ap{font-size:22px;font-weight:700}
+      .arrow{flex:1;text-align:center;color:#9b9b9b;font-size:12px}
+      .flight-info{display:flex;gap:16px;font-size:12px;color:#6b6b6b}
+      .cover{text-align:center;padding:40px 0;border-bottom:2px solid #E1F5EE;margin-bottom:32px}
+      .cover-icon{font-size:64px;margin-bottom:12px}
+      .cover h1{font-size:32px}
+      @media print{body{padding:20px}.cover{page-break-after:always}}
+    </style></head><body>
+    <div class="cover">
+      <div class="cover-icon">${trip.emoji}</div>
+      <h1>${esc(trip.name)}</h1>
+      <div class="sub">
+        ${new Date(trip.startDate).toLocaleDateString('zh-TW')} 出發 · ${trip.days}天${trip.nights}夜
+        ${trip.location ? `· ${esc(trip.location)}` : ''}
+      </div>
+    </div>`;
+
+  // Itinerary
+  html += `<h2>📅 行程安排</h2>`;
+  for(let d=1;d<=trip.days;d++){
+    const dd=new Date(start); dd.setDate(dd.getDate()+d-1);
+    const spots=(trip.spots&&trip.spots[d])||[];
+    html+=`<div class="day-block"><h3>第 ${d} 天 · ${dd.getMonth()+1}/${dd.getDate()}（${WDAYS[dd.getDay()]}）</h3>`;
+    if(!spots.length){html+=`<div style="color:#9b9b9b;font-size:12px;padding:6px 0">尚無景點</div>`;}
+    else spots.forEach(s=>{
+      html+=`<div class="spot"><div class="spot-icon">${s.emoji}</div><div>
+        <div class="spot-name">${esc(s.name)}</div>
+        <div class="spot-time">${s.time} – ${s.end}</div>
+        ${s.note?`<div class="spot-note">${esc(s.note)}</div>`:''}
+      </div></div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // Hotels
+  if(trip.hotels&&trip.hotels.length){
+    html+=`<h2>🏨 住宿安排</h2>`;
+    trip.hotels.forEach(h=>{
+      const ci=new Date(h.checkin),co=new Date(h.checkout); const n=Math.round((co-ci)/86400000);
+      html+=`<div class="hotel-row"><div class="hotel-name">${h.icon} ${esc(h.name)}</div>
+        <div class="hotel-info">${ci.getMonth()+1}/${ci.getDate()} 入住 → ${co.getMonth()+1}/${co.getDate()} 退房 · ${n} 晚</div>
+        ${h.addr?`<div class="hotel-info">📍 ${esc(h.addr)}</div>`:''}
+        <div class="hotel-info">${h.confirmed?'✅ 已確認':'⏳ 待確認'}</div>
+      </div>`;
+    });
+  }
+
+  // Flights
+  if(trip.flights&&trip.flights.length){
+    html+=`<h2>✈️ 航班資訊</h2>`;
+    trip.flights.forEach(f=>{
+      html+=`<div class="flight-card">
+        <div style="font-size:11px;color:#185FA5;margin-bottom:6px">${f.dir}</div>
+        <div class="flight-route">
+          <div><div class="ap">${f.from}</div><div style="font-size:12px;color:#6b6b6b">${f.dep}</div></div>
+          <div class="arrow">──── ${f.dur} ────></div>
+          <div style="text-align:right"><div class="ap">${f.to}</div><div style="font-size:12px;color:#6b6b6b">${f.arr}</div></div>
+        </div>
+        <div class="flight-info">
+          <span>📅 ${f.date}</span><span>✈ ${f.no}</span><span>💺 ${f.cabin} ${f.seat}</span>
+        </div></div>`;
+    });
+  }
+
+  html+=`<div style="text-align:center;color:#9b9b9b;font-size:11px;margin-top:40px;padding-top:20px;border-top:1px solid #f0f0f0">由 旅GO 產生 · ${new Date().toLocaleDateString('zh-TW')}</div>
+  </body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  if(w){setTimeout(()=>{w.print();URL.revokeObjectURL(url);},800);}
+  else{const a=document.createElement('a');a.href=url;a.download=`${trip.name}.html`;a.click();URL.revokeObjectURL(url);}
+  showToast('📄 PDF 列印視窗已開啟');
+};
+
+/* ─── Helpers ─── */
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function esca(s){return esc(s);}
+function escq(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+</script>
+</body>
+</html>
